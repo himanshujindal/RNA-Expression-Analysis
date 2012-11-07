@@ -1,0 +1,76 @@
+===============
+Folder Contents
+===============
+	- parallel
+		- contains parallel implementation
+		- contains following files/folders:
+			- genExpMat.sh	- main script to trigger the creation of expression matrix
+			- jnomics-code/ - contains Jnomics code
+
+	- serial
+		- contains serial implementation
+		- contains following files:
+			- genPileUp.sh
+			- calAvgDepth.cpp
+		- please note that there is a minor bug in serial implementation. The bug is that we
+		  get an answer which is close to the actual answer but is not exactly the same. We 
+		  did not find it a good idea to spend much time on it as the main priority was 
+		  parallel implementation.
+
+	- output
+		- generated on our m/c for 100 genes
+			- heatmap.png
+			- timeseries.png
+			- parcoord.png
+
+		- generated on Prof. Schatz's cluster for 1047 genes
+			- heatmap-1047.png
+			- timeseries-1047.png
+			- parcoord-1047.png
+
+
+==============
+How to compile
+==============
+	- parallel
+		- cd parallel
+		- chmod 755 genExpMat.sh
+		- cd jnomics-code
+		- ant jar
+		- this will create jnomics-tools.jar
+
+
+==============
+How to execute
+==============
+	- make sure you have latest version of R, BWA, SAMTools and bcftools installed
+
+	- first of all, unzip following file in a folder named "test":
+		- http://schatzlab.cshl.edu/data/challenges/challenge2.tgz
+		- mv challenge2.tgz test.tgz
+
+	- copy the following binaries into "test" folder:
+		- cp `which bwa` test
+		- cp `which samtools` test
+		- cp `which bcftools` test
+
+	- from "test" directory, fire following command:
+		- start hadoop
+		- rm -f nohup.out; ../parallel/genExpMat.sh ecoli.fa refgenes.ptt . 10 ../parallel/jnomics-code/jnomics-tools.jar bwa bcftools samtools expM
+
+	- this will create an o/p file "expM" in "test" directory
+
+	- now run R by typing "R" on command line and then do following:
+		- A <- matrix(scan("expM", n = 100 * 10), 100, 10, byrow = TRUE)
+			- 100 is the number of genes in test/refGenes.ptt file
+			- 10 is the number of experiements test/t1.1.fq ... test/t10.1.fq
+			- you can change these values as per the data set
+
+		- heatmap(A): plots the heatmap (pops up a new window)
+			- you can verify it with the output/heatmap.png
+
+		- plot(ts(A, 1, 100, 1)): plots the time series (pops up a new window)
+			- you can verify it with the output/timeseries.png
+
+		- parcoord(A): plots the parallel coordinates (pops up a new window)
+			- you can verify it with the output/parcoord.png
